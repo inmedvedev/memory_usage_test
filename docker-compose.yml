@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+
+  flask:
+    build: .
+    image: flask
+    container_name: flask
+    ports:
+      - '8080:8080'
+    command: flask run -h 0.0.0.0 -p 8080
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - mongo
+
+  redis:
+    image: redis
+
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
+
+  celery:
+    build: .
+    command: celery -A app.celery_app worker --loglevel INFO
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A app.celery_app beat --loglevel INFO
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
